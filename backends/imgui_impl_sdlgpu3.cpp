@@ -27,7 +27,10 @@
 #include "imgui.h"
 
 #ifndef IMGUI_DISABLE
+
 #include "imgui_impl_sdlgpu3.h"
+#include "imgui_impl_sdlgpu3_shadercross.h"
+
 #include <stdint.h>
 
 // Clang warnings with -Weverything
@@ -520,7 +523,10 @@ bool ImGui_ImplSDLGPU3_CreateDeviceObjects() {
     vert_shader_info.num_uniform_buffers = 1;
     vert_shader_info.num_storage_buffers = 0;
     vert_shader_info.num_storage_textures = 0;
-    SDL_GPUShader* vert_shader = SDL_CreateGPUShader(bd->Device, &vert_shader_info);
+
+    SDL_GPUShader* vert_shader = static_cast<SDL_GPUShader*>(
+        SDL_ShaderCross_CompileFromSPIRV(bd->Device, &vert_shader_info, SDL_FALSE));
+
     if (vert_shader == nullptr) {
         return false;
     }
@@ -535,7 +541,10 @@ bool ImGui_ImplSDLGPU3_CreateDeviceObjects() {
     frag_shader_info.num_uniform_buffers = 0;
     frag_shader_info.num_storage_buffers = 0;
     frag_shader_info.num_storage_textures = 0;
-    SDL_GPUShader* frag_shader = SDL_CreateGPUShader(bd->Device, &frag_shader_info);
+
+    SDL_GPUShader* frag_shader = static_cast<SDL_GPUShader*>(
+        SDL_ShaderCross_CompileFromSPIRV(bd->Device, &frag_shader_info, SDL_FALSE));
+
     if (frag_shader == nullptr) {
         return false;
     }
