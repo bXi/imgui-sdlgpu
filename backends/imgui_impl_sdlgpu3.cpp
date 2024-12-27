@@ -28,6 +28,7 @@
 
 #ifndef IMGUI_DISABLE
 
+
 #include "imgui_impl_sdlgpu3.h"
 #include "imgui_impl_sdlgpu3_shadercross.h"
 
@@ -321,8 +322,8 @@ void ImGui_ImplSDLGPU3_UploadDrawData(ImDrawData* draw_data, SDL_GPUCopyPass* co
     }
 
     // Upload vertex/index data into GPU transfer buffers
-    ImDrawVert* vtx_dst = (ImDrawVert*) SDL_MapGPUTransferBuffer(bd->Device, bd->VertexTransferBuffer, SDL_TRUE);
-    ImDrawIdx* idx_dst = (ImDrawIdx*) SDL_MapGPUTransferBuffer(bd->Device, bd->IndexTransferBuffer, SDL_TRUE);
+    ImDrawVert* vtx_dst = (ImDrawVert*) SDL_MapGPUTransferBuffer(bd->Device, bd->VertexTransferBuffer, true);
+    ImDrawIdx* idx_dst = (ImDrawIdx*) SDL_MapGPUTransferBuffer(bd->Device, bd->IndexTransferBuffer, true);
     for (int n = 0; n < draw_data->CmdListsCount; n++)
     {
         const ImDrawList* cmd_list = draw_data->CmdLists[n];
@@ -464,7 +465,7 @@ bool ImGui_ImplSDLGPU3_CreateFontsTexture() {
         buffer_create_info.size = (uint32_t)(width * height * 4);
 
         SDL_GPUTransferBuffer* texture_transfer_buffer = SDL_CreateGPUTransferBuffer(bd->Device, &buffer_create_info);
-        uint8_t* texture_transfer_ptr = (uint8_t*)SDL_MapGPUTransferBuffer(bd->Device, texture_transfer_buffer, SDL_FALSE);
+        uint8_t* texture_transfer_ptr = (uint8_t*)SDL_MapGPUTransferBuffer(bd->Device, texture_transfer_buffer, false);
         memcpy(texture_transfer_ptr, pixels, width * height * 4);
         SDL_UnmapGPUTransferBuffer(bd->Device, texture_transfer_buffer);
 
@@ -482,7 +483,7 @@ bool ImGui_ImplSDLGPU3_CreateFontsTexture() {
         transfer_texture_region.d = 1;
 
         SDL_UploadToGPUTexture(
-            copy_pass, &transfer_texture_info, &transfer_texture_region, SDL_FALSE);
+            copy_pass, &transfer_texture_info, &transfer_texture_region, false);
 
         SDL_EndGPUCopyPass(copy_pass);
 
@@ -524,9 +525,12 @@ bool ImGui_ImplSDLGPU3_CreateDeviceObjects() {
     vert_shader_info.num_storage_buffers = 0;
     vert_shader_info.num_storage_textures = 0;
 
-    SDL_GPUShader* vert_shader = static_cast<SDL_GPUShader*>(
-        SDL_ShaderCross_CompileFromSPIRV(bd->Device, &vert_shader_info, SDL_FALSE));
+    //TODO: fix shader to use shadercross
 
+    // SDL_GPUShader* vert_shader = static_cast<SDL_GPUShader*>(
+    //     SDL_ShaderCross_CompileFromSPIRV(bd->Device, &vert_shader_info, false));
+
+    SDL_GPUShader* vert_shader = SDL_CreateGPUShader(bd->Device, &vert_shader_info);
     if (vert_shader == nullptr) {
         return false;
     }
@@ -542,8 +546,12 @@ bool ImGui_ImplSDLGPU3_CreateDeviceObjects() {
     frag_shader_info.num_storage_buffers = 0;
     frag_shader_info.num_storage_textures = 0;
 
-    SDL_GPUShader* frag_shader = static_cast<SDL_GPUShader*>(
-        SDL_ShaderCross_CompileFromSPIRV(bd->Device, &frag_shader_info, SDL_FALSE));
+    //TODO: fix shader to use shadercross
+
+    //SDL_GPUShader* frag_shader = static_cast<SDL_GPUShader*>(
+    //    SDL_ShaderCross_CompileFromSPIRV(bd->Device, &frag_shader_info, false));
+
+    SDL_GPUShader* frag_shader = SDL_CreateGPUShader(bd->Device, &frag_shader_info);
 
     if (frag_shader == nullptr) {
         return false;
@@ -552,7 +560,7 @@ bool ImGui_ImplSDLGPU3_CreateDeviceObjects() {
     // Create render pipeline
     SDL_GPUColorTargetDescription color_target_description = {};
     color_target_description.format = bd->RenderTextureFormat;
-    color_target_description.blend_state.enable_blend = SDL_TRUE;
+    color_target_description.blend_state.enable_blend = true;
     color_target_description.blend_state.alpha_blend_op = SDL_GPU_BLENDOP_ADD;
     color_target_description.blend_state.color_blend_op = SDL_GPU_BLENDOP_ADD;
     color_target_description.blend_state.color_write_mask = 0xF;
